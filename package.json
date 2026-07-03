@@ -1,0 +1,18 @@
+{
+  "name": "ai-token-relay",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Token 中转站 — Cloudflare Pages Functions",
+  "scripts": {
+    "dev": "wrangler pages dev ./public --d1 DB",
+    "deploy": "wrangler pages deploy ./public",
+    "db:init": "wrangler d1 execute ai-token-relay --file=./db/schema.sql",
+    "db:seed": "wrangler d1 execute ai-token-relay --command=\"INSERT OR IGNORE INTO users (username,email,password_hash,password_salt,role,quota) VALUES ('admin','admin@aihub.local','$(echo -n 'admin123' | sha256sum)','$(openssl rand -hex 16)','admin',999999999);\""
+  },
+  "dependencies": {
+    "jose": "^5.9.6"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}

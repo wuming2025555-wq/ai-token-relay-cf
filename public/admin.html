@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理后台 — AI Token 中转站</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg class="logo-hex" viewBox="0 0 34 34" fill="none">
+        <path d="M17 2L30 9.5V24.5L17 32L4 24.5V9.5L17 2Z" fill="#6c63ff" fill-opacity="0.15" stroke="#6c63ff" stroke-width="1.5"/>
+        <path d="M17 7L25.5 11.75V21.25L17 26L8.5 21.25V11.75L17 7Z" fill="#6c63ff" fill-opacity="0.3" stroke="#6c63ff" stroke-width="1.2"/>
+        <text x="17" y="19" text-anchor="middle" fill="#6c63ff" font-size="9" font-weight="700" font-family="Space Grotesk">AI</text>
+      </svg>
+      <span>管理后台</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="/dashboard" class="nav-item" style="margin-bottom:8px;"><span class="nav-icon">←</span>返回仪表盘</a>
+      <div class="nav-item active" data-tab="users" style="margin-top:4px;"><span class="nav-icon">👥</span>用户管理</div>
+      <div class="nav-item" data-tab="system"><span class="nav-icon">📊</span>系统统计</div>
+    </nav>
+  </aside>
+  <div class="main-area">
+    <header class="top-bar">
+      <h2 class="page-title">管理后台</h2>
+      <div class="top-bar-right">
+        <span class="user-badge">
+          <span class="user-avatar" id="userAvatar">?</span>
+          <span id="userName">-</span>
+          <span class="badge badge-primary">管理员</span>
+        </span>
+      </div>
+    </header>
+    <div class="content">
+      <div class="tab-content" id="tab-users">
+        <h3 class="mb-4">用户管理</h3>
+        <div class="card">
+          <div class="table-wrap"><table><thead><tr><th>ID</th><th>用户名</th><th>邮箱</th><th>角色</th><th>已用 Tokens</th><th>配额</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="adminUsersTableBody"><tr><td colspan="9" class="text-center text-3">加载中...</td></tr></tbody></table></div>
+        </div>
+      </div>
+      <div class="tab-content" id="tab-system" style="display:none;">
+        <h3 class="mb-4">系统统计</h3>
+        <div class="stats-grid" id="systemStatsGrid">
+          <div class="stat-card card card-hover primary"><div class="stat-value" id="sysTotalUsers">-</div><div class="stat-label">总用户数</div></div>
+          <div class="stat-card card card-hover accent"><div class="stat-value" id="sysActiveKeys">-</div><div class="stat-label">活跃密钥</div></div>
+          <div class="stat-card card card-hover success"><div class="stat-value" id="sysTotalRequests">-</div><div class="stat-label">总请求数</div></div>
+          <div class="stat-card card card-hover warning"><div class="stat-value" id="sysTotalTokens">-</div><div class="stat-label">总 Tokens</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Edit User Modal -->
+<div class="modal-overlay" id="editUserModal"><div class="modal"><h3 class="modal-title">编辑用户</h3><input type="hidden" id="editUserId">
+  <div class="form-group"><label class="form-label">配额 (tokens)</label><input class="form-input form-input-mono" id="editQuota" type="number"></div>
+  <div class="form-group"><label class="form-label">角色</label><select class="form-input" id="editRole"><option value="user">普通用户</option><option value="admin">管理员</option></select></div>
+  <div class="form-group"><label class="form-label">新密码</label><input class="form-input" id="editPassword" type="password" placeholder="留空则不修改"></div>
+  <div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="editActive" checked> 账号启用</label></div>
+  <div class="modal-actions"><button class="btn btn-outline" onclick="closeModal('editUserModal')">取消</button><button class="btn btn-primary" id="confirmEditUser">保存</button></div>
+</div></div>
+<div class="toast-container" id="toastContainer"></div>
+<script src="/js/app.js"></script>
+<script>
+let userData=null;
+initUser();
+async function initUser(){try{const data=await apiGet('/api/user/profile');userData=data.user;
+  document.getElementById('userName').textContent=userData.username;document.getElementById('userAvatar').textContent=userData.username.charAt(0).toUpperCase();}catch{window.location.href='/login';}}
+
+document.querySelectorAll('.nav-item[data-tab]').forEach(item=>{item.addEventListener('click',()=>{
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));item.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');document.getElementById('tab-'+item.dataset.tab).style.display='block';});});
+
+loadAdminData();
+async function loadAdminData(){try{
+  const uData=await apiGet('/api/admin/users');const tbody=document.getElementById('adminUsersTableBody');
+  tbody.innerHTML=uData.users.map(u=>`<tr><td class="text-sm text-3">${u.id}</td><td><strong>${escapeHtml(u.username)}</strong></td><td class="text-sm text-3">${u.email||'-'}</td><td><span class="badge ${u.role==='admin'?'badge-primary':'badge-success'}">${u.role}</span></td><td class="mono">${fmtNum(u.used_tokens)}</td><td class="mono">${fmtNum(u.quota)}</td><td><span class="badge ${u.is_active?'badge-success':'badge-danger'}">${u.is_active?'正常':'禁用'}</span></td><td class="text-sm text-3">${fmtTime(u.created_at)}</td><td><button class="btn btn-outline btn-xs" onclick="openEditUser(${u.id},${u.quota},'${u.role}',${u.is_active})">编辑</button></td></tr>`).join('');
+  const sData=await apiGet('/api/admin/stats');document.getElementById('sysTotalUsers').textContent=sData.total_users;
+  document.getElementById('sysActiveKeys').textContent=sData.active_keys;document.getElementById('sysTotalRequests').textContent=fmtNum(sData.total_requests);
+  document.getElementById('sysTotalTokens').textContent=fmtNum(sData.total_tokens);}catch{showToast('加载失败','error');}}
+
+function openEditUser(id,quota,role,active){document.getElementById('editUserId').value=id;document.getElementById('editQuota').value=quota;
+  document.getElementById('editRole').value=role;document.getElementById('editActive').checked=active;
+  document.getElementById('editPassword').value='';openModal('editUserModal');}
+
+document.getElementById('confirmEditUser').addEventListener('click',async()=>{const id=document.getElementById('editUserId').value;
+  const data={quota:parseInt(document.getElementById('editQuota').value),role:document.getElementById('editRole').value,is_active:document.getElementById('editActive').checked};
+  const pwd=document.getElementById('editPassword').value;if(pwd)data.password=pwd;
+  const resp=await apiPut('/api/admin/users/'+id,data);if(resp){showToast('用户已更新','success');closeModal('editUserModal');loadAdminData();}});
+</script>
+</body>
+</html>

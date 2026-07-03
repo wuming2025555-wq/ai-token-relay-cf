@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>仪表盘 — AI Token 中转站</title>
+<link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <svg class="logo-hex" viewBox="0 0 34 34" fill="none">
+        <path d="M17 2L30 9.5V24.5L17 32L4 24.5V9.5L17 2Z" fill="#6c63ff" fill-opacity="0.15" stroke="#6c63ff" stroke-width="1.5"/>
+        <path d="M17 7L25.5 11.75V21.25L17 26L8.5 21.25V11.75L17 7Z" fill="#6c63ff" fill-opacity="0.3" stroke="#6c63ff" stroke-width="1.2"/>
+        <text x="17" y="19" text-anchor="middle" fill="#6c63ff" font-size="9" font-weight="700" font-family="Space Grotesk">AI</text>
+      </svg>
+      <span>AI Token 中转站</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-tab="overview"><span class="nav-icon">📊</span>总览</div>
+      <div class="nav-item" data-tab="keys"><span class="nav-icon">🔑</span>API 密钥</div>
+      <div class="nav-item" data-tab="usage"><span class="nav-icon">📈</span>用量明细</div>
+      <div class="nav-item" data-tab="docs"><span class="nav-icon">📖</span>接入文档</div>
+      <div class="nav-item" data-tab="admin" id="adminNavItem" style="display:none;margin-top:12px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+        <span class="nav-icon">⚙️</span>管理后台
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="nav-item" id="logoutBtn"><span class="nav-icon">🚪</span>退出登录</div>
+    </div>
+  </aside>
+  <div class="main-area">
+    <header class="top-bar">
+      <h2 class="page-title" id="pageTitle">总览</h2>
+      <div class="top-bar-right">
+        <span class="user-badge">
+          <span class="user-avatar" id="userAvatar">?</span>
+          <span id="userName">-</span>
+          <span class="badge badge-primary" id="adminBadge" style="display:none">管理员</span>
+        </span>
+      </div>
+    </header>
+    <div class="content">
+      <!-- Tab: Overview -->
+      <div class="tab-content" id="tab-overview">
+        <div class="stats-grid" id="statsGrid">
+          <div class="stat-card card card-hover primary"><div class="stat-value" id="statTokens">-</div><div class="stat-label">已用 Tokens</div></div>
+          <div class="stat-card card card-hover accent"><div class="stat-value" id="statQuota">-</div><div class="stat-label">总配额</div></div>
+          <div class="stat-card card card-hover warning"><div class="stat-value" id="statRemaining">-</div><div class="stat-label">剩余配额</div></div>
+          <div class="stat-card card card-hover success"><div class="stat-value" id="statRequests">-</div><div class="stat-label">总请求数</div></div>
+        </div>
+        <div class="card" style="margin-bottom:24px;">
+          <div class="card-header"><span class="card-title">配额使用</span><span id="quotaPercentText" class="text-sm text-3">0%</span></div>
+          <div class="progress-wrap"><div class="progress-fill" id="quotaBar" style="width:0%;"></div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card"><div class="card-header"><span class="card-title">每日趋势</span></div><div id="dailyChart" class="chart-container"><div class="loading"><div class="spinner"></div></div></div></div>
+          <div class="card"><div class="card-header"><span class="card-title">模型分布</span></div><div id="modelChart" class="chart-container"><div class="loading"><div class="spinner"></div></div></div></div>
+        </div>
+        <div class="card" style="margin-top:24px;">
+          <div class="card-header"><span class="card-title">最近请求</span></div>
+          <div class="table-wrap"><table><thead><tr><th>时间</th><th>模型</th><th>输入</th><th>输出</th><th>总计</th><th>状态</th></tr></thead><tbody id="recentRequests"><tr><td colspan="6" class="text-center text-3">暂无数据</td></tr></tbody></table></div>
+        </div>
+      </div>
+      <!-- Tab: Keys -->
+      <div class="tab-content" id="tab-keys" style="display:none;">
+        <div class="flex-between mb-4"><h3>API 密钥</h3><button class="btn btn-primary btn-sm" id="createKeyBtn">+ 新建密钥</button></div>
+        <div class="card"><div class="table-wrap"><table><thead><tr><th>名称</th><th>API Key</th><th>创建时间</th><th>最后使用</th><th>状态</th><th>操作</th></tr></thead><tbody id="keysTableBody"><tr><td colspan="6" class="text-center text-3">加载中...</td></tr></tbody></table></div></div>
+      </div>
+      <!-- Tab: Usage -->
+      <div class="tab-content" id="tab-usage" style="display:none;">
+        <div class="flex-between mb-4"><h3>用量明细</h3><div style="display:flex;gap:8px;"><button class="btn btn-outline btn-sm" data-days="7">7天</button><button class="btn btn-outline btn-sm active" data-days="30">30天</button><button class="btn btn-outline btn-sm" data-days="90">90天</button></div></div>
+        <div class="card"><div class="table-wrap"><table><thead><tr><th>时间</th><th>模型</th><th>提供商</th><th>输入</th><th>输出</th><th>总计</th><th>费用</th></tr></thead><tbody id="usageDetailBody"><tr><td colspan="7" class="text-center text-3">加载中...</td></tr></tbody></table></div></div>
+      </div>
+      <!-- Tab: Docs -->
+      <div class="tab-content" id="tab-docs" style="display:none;">
+        <h3 class="mb-4">接入文档</h3>
+        <div class="card" style="margin-bottom:16px;"><h3 style="margin-bottom:8px;">Python (OpenAI SDK)</h3><pre class="code-snip"><code><span class="keyword">from</span> openai <span class="keyword">import</span> OpenAI
+client = OpenAI(base_url=<span class="string">"https://your-domain.com/v1"</span>, api_key=<span class="string">"YOUR_API_KEY"</span>)
+response = client.chat.completions.create(model=<span class="string">"gpt-4o"</span>, messages=[{<span class="string">"role"</span>:<span class="string">"user"</span>,<span class="string">"content"</span>:<span class="string">"Hello!"</span>}])
+<span class="func">print</span>(response.choices[<span class="number">0</span>].message.content)</code></pre></div>
+        <div class="card" style="margin-bottom:16px;"><h3 style="margin-bottom:8px;">cURL</h3><pre class="code-snip"><code>curl https://your-domain.com/v1/chat/completions \
+  -H <span class="string">"Content-Type: application/json"</span> \
+  -H <span class="string">"Authorization: Bearer YOUR_API_KEY"</span> \
+  -d <span class="string">'{"model":"gpt-4o","messages":[{"role":"user","content":"Hello!"}]}'</span></code></pre></div>
+        <div class="card" style="margin-bottom:16px;"><h3 style="margin-bottom:8px;">JavaScript</h3><pre class="code-snip"><code><span class="keyword">const</span> resp = await fetch(<span class="string">"https://your-domain.com/v1/chat/completions"</span>, {
+  method: <span class="string">"POST"</span>,
+  headers: { <span class="string">"Content-Type"</span>: <span class="string">"application/json"</span>, <span class="string">"Authorization"</span>: <span class="string">"Bearer YOUR_API_KEY"</span> },
+  body: JSON.stringify({ model: <span class="string">"gpt-4o"</span>, messages: [{role: <span class="string">"user"</span>, content: <span class="string">"Hello!"</span>}] })
+});
+<span class="keyword">const</span> data = await resp.json();
+<span class="func">console.log</span>(data.choices[<span class="number">0</span>].message.content);</code></pre></div>
+        <div class="card"><h3 style="margin-bottom:8px;">可用模型</h3><div class="table-wrap"><table><thead><tr><th>模型</th><th>提供商</th><th>输入 ($/1M)</th><th>输出 ($/1M)</th></tr></thead><tbody id="modelsTableBody"><tr><td colspan="4" class="text-center text-3">加载中...</td></tr></tbody></table></div></div>
+      </div>
+      <!-- Tab: Admin -->
+      <div class="tab-content" id="tab-admin" style="display:none;">
+        <h3 class="mb-4">系统管理</h3>
+        <div class="stats-grid" id="adminStatsGrid">
+          <div class="stat-card card card-hover primary"><div class="stat-value" id="adminTotalUsers">-</div><div class="stat-label">用户数</div></div>
+          <div class="stat-card card card-hover accent"><div class="stat-value" id="adminActiveKeys">-</div><div class="stat-label">活跃密钥</div></div>
+          <div class="stat-card card card-hover success"><div class="stat-value" id="adminTotalRequests">-</div><div class="stat-label">总请求</div></div>
+          <div class="stat-card card card-hover warning"><div class="stat-value" id="adminTotalTokens">-</div><div class="stat-label">总 Tokens</div></div>
+        </div>
+        <div class="card"><div class="card-header"><span class="card-title">用户管理</span></div>
+          <div class="table-wrap"><table><thead><tr><th>ID</th><th>用户名</th><th>角色</th><th>已用</th><th>配额</th><th>状态</th><th>注册时间</th><th>操作</th></tr></thead><tbody id="adminUsersBody"><tr><td colspan="8" class="text-center text-3">加载中...</td></tr></tbody></table></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modals -->
+<div class="modal-overlay" id="createKeyModal"><div class="modal"><h3 class="modal-title">新建 API 密钥</h3><div class="form-group"><label class="form-label">名称</label><input class="form-input" id="newKeyName" placeholder="例如：生产环境" value="默认密钥"></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal('createKeyModal')">取消</button><button class="btn btn-primary" id="confirmCreateKey">创建</button></div></div></div>
+<div class="modal-overlay" id="editUserModal"><div class="modal"><input type="hidden" id="editUserId"><h3 class="modal-title">编辑用户</h3><div class="form-group"><label class="form-label">配额 (tokens)</label><input class="form-input form-input-mono" id="editQuota" type="number"></div><div class="form-group"><label class="form-label">角色</label><select class="form-input" id="editRole"><option value="user">普通用户</option><option value="admin">管理员</option></select></div><div class="form-group"><label class="form-label">新密码（留空不改）</label><input class="form-input" id="editPassword" type="password" placeholder="留空则不修改"></div><div class="form-group"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="editActive" checked> 启用</label></div><div class="modal-actions"><button class="btn btn-outline" onclick="closeModal('editUserModal')">取消</button><button class="btn btn-primary" id="confirmEditUser">保存</button></div></div></div>
+<div class="toast-container" id="toastContainer"></div>
+<script src="/js/app.js"></script>
+<script>
+const TOKEN = getCookie('token');
+if (!TOKEN) { window.location.href = '/login'; }
+
+let userData = null;
+async function initUser() {
+  try { const data = await apiGet('/api/user/profile');
+    userData = data.user;
+    document.getElementById('userName').textContent = userData.username;
+    document.getElementById('userAvatar').textContent = userData.username.charAt(0).toUpperCase();
+    if (userData.role === 'admin') {
+      document.getElementById('adminNavItem').style.display = ''; document.getElementById('adminBadge').style.display = '';
+    }
+  } catch { window.location.href = '/login'; }
+}
+
+document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+    const tab = item.dataset.tab;
+    document.getElementById('tab-' + tab).style.display = 'block';
+    document.getElementById('pageTitle').textContent = { overview:'总览', keys:'API 密钥', usage:'用量明细', docs:'接入文档', admin:'管理后台' }[tab] || '总览';
+    if (tab === 'overview') loadDashboard();
+    if (tab === 'keys') loadKeys();
+    if (tab === 'usage') loadUsageDetail(30);
+    if (tab === 'docs') loadModelsList();
+    if (tab === 'admin') { loadAdminStats(); loadAdminUsers(); }
+  });
+});
+
+async function loadDashboard() {
+  try { const data = await apiGet('/api/user/usage?days=30');
+    document.getElementById('statTokens').textContent = fmtNum(data.summary.total_tokens);
+    document.getElementById('statQuota').textContent = fmtNum(data.summary.quota);
+    document.getElementById('statRemaining').textContent = fmtNum(data.summary.quota_remaining);
+    document.getElementById('statRequests').textContent = data.recent.length;
+    const pct = data.summary.quota_percent;
+    document.getElementById('quotaPercentText').textContent = pct + '%';
+    const bar = document.getElementById('quotaBar'); bar.style.width = Math.min(pct,100) + '%';
+    bar.className = 'progress-fill' + (pct > 90 ? ' danger' : pct > 70 ? ' warning' : '');
+    drawDailyChart(data.daily); drawModelChart(data.models); renderRecentRequests(data.recent);
+  } catch {}
+}
+
+function drawDailyChart(daily) {
+  const c = document.getElementById('dailyChart'); c.innerHTML = '';
+  if (!daily || daily.length === 0) { c.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><p>暂无数据</p></div>'; return; }
+  const maxV = Math.max(...daily.map(d => d.tokens), 1);
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 600 200'); svg.style.display = 'block';
+  const W=580,H=180,pL=10,pB=25,pT=10,cw=W-pL,ch=H-pB-pT;
+  if (daily.length>1) {
+    const sX = cw/(daily.length-1);
+    const pts = daily.map((d,i)=>`${pL+i*sX},${pT+ch-(d.tokens/maxV)*ch}`);
+    const a=document.createElementNS(svg.namespaceURI,'polygon');
+    a.setAttribute('points',`${pL},${pT+ch} ${pts.join(' ')} ${pL+(daily.length-1)*sX},${pT+ch}`);
+    a.setAttribute('fill','rgba(108,99,255,0.08)'); svg.appendChild(a);
+    const l=document.createElementNS(svg.namespaceURI,'polyline');
+    l.setAttribute('points',pts.join(' ')); l.setAttribute('fill','none');
+    l.setAttribute('stroke','#6c63ff'); l.setAttribute('stroke-width','2.5');
+    l.setAttribute('stroke-linecap','round'); l.setAttribute('stroke-linejoin','round'); svg.appendChild(l);
+    daily.forEach((d,i)=>{if(daily.length<=14||i%Math.ceil(daily.length/10)===0){const lb=document.createElementNS(svg.namespaceURI,'text');lb.setAttribute('x',pL+i*sX);lb.setAttribute('y',H-4);lb.setAttribute('text-anchor','middle');lb.setAttribute('fill','#9294b0');lb.setAttribute('font-size','9');lb.textContent=d.date.slice(5);svg.appendChild(lb);}});
+  }
+  c.appendChild(svg);
+}
+
+function drawModelChart(models) {
+  const c = document.getElementById('modelChart'); c.innerHTML = '';
+  if (!models||models.length===0){c.innerHTML='<div class="empty-state"><div class="empty-icon">📊</div><p>暂无数据</p></div>';return;}
+  const top=models.slice(0,6),mT=Math.max(...top.map(m=>m.tokens),1);
+  const colors=['#6c63ff','#00d4aa','#10b981','#f59e0b','#ef4444','#8b5cf6'];
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 450 200'); svg.style.display='block';
+  const bH=22,gp=8,pL=120,pR=10,pT=10;
+  top.forEach((m,i)=>{const y=pT+i*(bH+gp),w=(m.tokens/mT)*(450-pL-pR);
+    const lb=document.createElementNS(svg.namespaceURI,'text');lb.setAttribute('x',pL-8);lb.setAttribute('y',y+bH-6);
+    lb.setAttribute('text-anchor','end');lb.setAttribute('fill','#5a5b7a');lb.setAttribute('font-size','10');
+    lb.textContent=m.model.length>18?m.model.slice(0,17)+'...':m.model;svg.appendChild(lb);
+    const r=document.createElementNS(svg.namespaceURI,'rect');r.setAttribute('x',pL);r.setAttribute('y',y);
+    r.setAttribute('width',Math.max(w,4));r.setAttribute('height',bH);
+    r.setAttribute('fill',colors[i%colors.length]);r.setAttribute('rx','4');svg.appendChild(r);
+    const v=document.createElementNS(svg.namespaceURI,'text');v.setAttribute('x',pL+Math.max(w,4)+6);v.setAttribute('y',y+bH-6);
+    v.setAttribute('fill','#9294b0');v.setAttribute('font-size','9');v.textContent=fmtNum(m.tokens);svg.appendChild(v);});
+  c.appendChild(svg);
+}
+
+function renderRecentRequests(recent) {
+  const tbody=document.getElementById('recentRequests');
+  if(!recent||recent.length===0){tbody.innerHTML='<tr><td colspan="6" class="text-center text-3">暂无数据</td></tr>';return;}
+  tbody.innerHTML=recent.slice(0,15).map(r=>`<tr><td class="text-sm text-3">${fmtTime(r.created_at)}</td><td><span class="mono">${r.model}</span></td><td>${fmtNum(r.tokens_in)}</td><td>${fmtNum(r.tokens_out)}</td><td><strong>${fmtNum(r.tokens_total)}</strong></td><td><span class="badge ${r.status_code===200?'badge-success':'badge-danger'}">${r.status_code||'-'}</span></td></tr>`).join('');
+}
+
+async function loadKeys() {
+  try{const data=await apiGet('/api/user/keys');const tbody=document.getElementById('keysTableBody');
+    if(!data.keys||data.keys.length===0){tbody.innerHTML='<tr><td colspan="6" class="text-center text-3">暂无密钥</td></tr>';return;}
+    tbody.innerHTML=data.keys.map(k=>`<tr><td><strong>${escapeHtml(k.name)}</strong></td><td><code class="mono" style="font-size:0.76rem;cursor:pointer;" onclick="copyText(this.textContent)">${k.key.slice(0,15)}...${k.key.slice(-8)}</code></td><td class="text-sm text-3">${fmtTime(k.created_at)}</td><td class="text-sm text-3">${k.last_used_at?fmtTime(k.last_used_at):'从未使用'}</td><td><span class="badge ${k.is_active?'badge-success':'badge-danger'}">${k.is_active?'启用':'停用'}</span></td><td><button class="btn btn-outline btn-xs" onclick="copyText('${k.key}')">复制</button><button class="btn btn-danger btn-xs" onclick="deleteKey(${k.id})">删除</button></td></tr>`).join('');
+  }catch{document.getElementById('keysTableBody').innerHTML='<tr><td colspan="6" class="text-center text-3">加载失败</td></tr>';}
+}
+
+async function deleteKey(id){if(!confirm('确定删除此密钥？'))return;await apiDelete('/api/user/keys/'+id);showToast('密钥已删除','success');loadKeys();}
+
+async function loadUsageDetail(days){
+  try{const data=await apiGet('/api/user/usage?days='+days);const tbody=document.getElementById('usageDetailBody');
+    if(!data.recent||data.recent.length===0){tbody.innerHTML='<tr><td colspan="7" class="text-center text-3">暂无数据</td></tr>';return;}
+    tbody.innerHTML=data.recent.map(r=>`<tr><td class="text-sm text-3">${fmtTime(r.created_at)}</td><td class="mono">${r.model}</td><td>${r.provider}</td><td>${fmtNum(r.tokens_in)}</td><td>${fmtNum(r.tokens_out)}</td><td><strong>${fmtNum(r.tokens_total)}</strong></td><td class="mono">${(r.cost||0).toFixed(6)}</td></tr>`).join('');
+  }catch{document.getElementById('usageDetailBody').innerHTML='<tr><td colspan="7" class="text-center text-3">加载失败</td></tr>';}
+}
+
+async function loadModelsList(){
+  try{const kd=await apiGet('/api/user/keys');if(!kd.keys||!kd.keys[0])return;
+    const resp=await fetch('/v1/models',{headers:{'Authorization':'Bearer '+kd.keys[0].key}});const data=await resp.json();
+    const tbody=document.getElementById('modelsTableBody');
+    if(!data.data||data.data.length===0){tbody.innerHTML='<tr><td colspan="4" class="text-center text-3">暂无</td></tr>';return;}
+    tbody.innerHTML=data.data.map(m=>`<tr><td class="mono">${m.id}</td><td>${m.owned_by}</td><td class="mono">$${m.pricing.input.toFixed(2)}</td><td class="mono">$${m.pricing.output.toFixed(2)}</td></tr>`).join('');
+  }catch{document.getElementById('modelsTableBody').innerHTML='<tr><td colspan="4" class="text-center text-3">加载失败</td></tr>';}
+}
+
+async function loadAdminStats(){try{const data=await apiGet('/api/admin/stats');
+  document.getElementById('adminTotalUsers').textContent=data.total_users;
+  document.getElementById('adminActiveKeys').textContent=data.active_keys;
+  document.getElementById('adminTotalRequests').textContent=fmtNum(data.total_requests);
+  document.getElementById('adminTotalTokens').textContent=fmtNum(data.total_tokens);}catch{}}
+
+async function loadAdminUsers(){try{const data=await apiGet('/api/admin/users');
+  document.getElementById('adminUsersBody').innerHTML=data.users.map(u=>`<tr><td class="text-sm text-3">${u.id}</td><td><strong>${escapeHtml(u.username)}</strong></td><td><span class="badge ${u.role==='admin'?'badge-primary':'badge-success'}">${u.role}</span></td><td class="mono">${fmtNum(u.used_tokens)}</td><td class="mono">${fmtNum(u.quota)}</td><td><span class="badge ${u.is_active?'badge-success':'badge-danger'}">${u.is_active?'正常':'禁用'}</span></td><td class="text-sm text-3">${fmtTime(u.created_at)}</td><td><button class="btn btn-outline btn-xs" onclick='openEditUser(${u.id},"${escapeHtml(u.username)}",${u.quota},"${u.role}",${u.is_active})'>编辑</button></td></tr>`).join('');
+  }catch{document.getElementById('adminUsersBody').innerHTML='<tr><td colspan="8" class="text-center text-3">加载失败</td></tr>';}}
+
+function openEditUser(id,uname,quota,role,active){document.getElementById('editUserId').value=id;
+  document.getElementById('editQuota').value=quota;document.getElementById('editRole').value=role;
+  document.getElementById('editActive').checked=active;document.getElementById('editPassword').value='';openModal('editUserModal');}
+
+document.getElementById('confirmEditUser')?.addEventListener('click',async()=>{const id=document.getElementById('editUserId').value;
+  const data={quota:parseInt(document.getElementById('editQuota').value),role:document.getElementById('editRole').value,is_active:document.getElementById('editActive').checked};
+  const pwd=document.getElementById('editPassword').value;if(pwd)data.password=pwd;
+  const resp=await apiPut('/api/admin/users/'+id,data);if(resp){showToast('已更新','success');closeModal('editUserModal');loadAdminUsers();}});
+
+document.getElementById('createKeyBtn')?.addEventListener('click',()=>openModal('createKeyModal'));
+document.getElementById('confirmCreateKey')?.addEventListener('click',async()=>{const name=document.getElementById('newKeyName').value||'默认密钥';
+  const resp=await apiPost('/api/user/keys',{name});if(resp){showToast('密钥已创建','success');closeModal('createKeyModal');loadKeys();}});
+
+document.querySelectorAll('#tab-usage [data-days]').forEach(b=>{b.addEventListener('click',()=>{
+  document.querySelectorAll('#tab-usage [data-days]').forEach(x=>x.classList.remove('active'));b.classList.add('active');loadUsageDetail(parseInt(b.dataset.days));});});
+
+document.getElementById('logoutBtn')?.addEventListener('click',()=>{document.cookie='token=;path=/;max-age=0';window.location.href='/login';});
+
+initUser().then(()=>{loadDashboard();loadKeys();});
+</script>
+</body>
+</html>

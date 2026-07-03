@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Token 中转站 — 统一 AI API 代理</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="landing">
+  <nav class="landing-nav">
+    <div class="brand">
+      <svg class="logo-hex" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17 2L30 9.5V24.5L17 32L4 24.5V9.5L17 2Z" fill="#6c63ff" fill-opacity="0.12" stroke="#6c63ff" stroke-width="1.5"/>
+        <path d="M17 7L25.5 11.75V21.25L17 26L8.5 21.25V11.75L17 7Z" fill="#6c63ff" fill-opacity="0.25" stroke="#6c63ff" stroke-width="1.2"/>
+        <text x="17" y="19" text-anchor="middle" fill="#6c63ff" font-size="9" font-weight="700" font-family="Space Grotesk, sans-serif">AI</text>
+      </svg>
+      <span>AI Token 中转站</span>
+    </div>
+    <div style="display:flex;gap:10px;">
+      <a href="/login" class="btn btn-outline">登录</a>
+      <a href="/register" class="btn btn-primary">注册</a>
+    </div>
+  </nav>
+
+  <section class="landing-hero">
+    <h1>AI API 统一代理 · 用量可视化</h1>
+    <p>一个兼容 OpenAI 的统一接口，接入 GPT-4o、Claude 等多款主流模型。实时追踪 token 消耗，精细化管控 API 调用。</p>
+    <div class="landing-actions">
+      <a href="/register" class="btn btn-primary" style="padding:14px 36px;font-size:1rem;">免费开始使用</a>
+      <a href="/login" class="btn btn-outline" style="padding:14px 36px;font-size:1rem;">登录控制台</a>
+    </div>
+  </section>
+
+  <section class="landing-features">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:var(--c-primary-light);color:var(--c-primary);">⚡</div>
+      <h3>统一 API</h3>
+      <p>兼容 OpenAI 接口格式，仅需更换 base_url。GPT-4o、Claude 等模型一个入口搞定。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:var(--c-accent-light);color:var(--c-accent);">📊</div>
+      <h3>用量追踪</h3>
+      <p>每次 API 调用的 token 消耗精准记录，可视化仪表盘展示趋势，用量一目了然。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#eeedff;color:#6c63ff;">🔑</div>
+      <h3>多密钥管理</h3>
+      <p>支持创建多个 API Key，项目或团队成员独立管理。随时启用、停用或删除。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#fce8e8;color:#ef4444;">🛡️</div>
+      <h3>配额管控</h3>
+      <p>用户级配额管理，防止意外超额。请求日志完整记录，审计追溯安全合规。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#fff3e0;color:#f59e0b;">🚀</div>
+      <h3>快速接入</h3>
+      <p>两行代码接入：设置 base_url 和 API Key，原有代码零改动即可代理加速。</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#e0faf4;color:#00d4aa;">🌐</div>
+      <h3>多模型</h3>
+      <p>聚合 OpenAI、Anthropic 等主流提供商，持续扩展模型库，一个入口访问所有 AI。</p>
+    </div>
+  </section>
+
+  <section style="padding:0 48px 80px;max-width:800px;margin:0 auto;">
+    <div class="card" style="background:var(--c-bg-card);">
+      <h3 style="margin-bottom:12px;">快速接入示例</h3>
+      <p style="font-size:0.85rem;color:var(--c-text-3);margin-bottom:16px;">兼容 OpenAI SDK，仅需修改 base_url 和 api_key</p>
+      <pre class="code-snip"><code><span class="keyword">from</span> openai <span class="keyword">import</span> OpenAI
+
+client = OpenAI(
+    base_url=<span class="string">"https://your-domain.com/v1"</span>,
+    api_key=<span class="string">"sk-aihub-xxxxxxxxxxxxxxxx"</span>
+)
+
+response = client.chat.completions.create(
+    model=<span class="string">"gpt-4o"</span>,
+    messages=[{<span class="string">"role"</span>: <span class="string">"user"</span>, <span class="string">"content"</span>: <span class="string">"Hello!"</span>}]
+)
+<span class="func">print</span>(response.choices[<span class="number">0</span>].message.content)</code></pre>
+    </div>
+  </section>
+  </div>
+
+  <footer class="landing-footer">
+    <p>AI Token 中转站 &copy; 2026 — 让 AI API 调用更简单</p>
+  </footer>
+</div>
+<div class="toast-container" id="toastContainer"></div>
+<script src="/js/app.js"></script>
+</body>
+</html>

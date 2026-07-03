@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 — AI Token 中转站</title>
+  <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div class="login-page">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo">
+        <svg class="logo-hex" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:52px;height:52px;">
+          <path d="M17 2L30 9.5V24.5L17 32L4 24.5V9.5L17 2Z" fill="#6c63ff" fill-opacity="0.12" stroke="#6c63ff" stroke-width="1.5"/>
+          <path d="M17 7L25.5 11.75V21.25L17 26L8.5 21.25V11.75L17 7Z" fill="#6c63ff" fill-opacity="0.25" stroke="#6c63ff" stroke-width="1.2"/>
+          <text x="17" y="19" text-anchor="middle" fill="#6c63ff" font-size="9" font-weight="700" font-family="Space Grotesk, sans-serif">AI</text>
+        </svg>
+      </div>
+      <h1>欢迎回来</h1>
+      <p>登录您的 AI Token 中转站账号</p>
+    </div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label" for="username">用户名</label>
+        <input class="form-input" id="username" name="username" type="text" placeholder="输入用户名" required autocomplete="username" autofocus>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="password">密码</label>
+        <input class="form-input" id="password" name="password" type="password" placeholder="输入密码" required autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary w-full" style="padding:12px;font-size:1rem;margin-top:8px;" id="loginBtn">登 录</button>
+    </form>
+    <div class="login-footer">还没有账号？<a href="/register">立即注册</a></div>
+    <div class="login-footer" style="margin-top:12px;padding-top:16px;border-top:1px solid var(--c-border);font-size:0.8rem;">
+      演示：demo / demo123 · 管理：admin / admin123
+    </div>
+  </div>
+</div>
+<div class="toast-container" id="toastContainer"></div>
+<script src="/js/app.js"></script>
+<script>
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  btn.disabled = true; btn.textContent = '登录中...';
+  try {
+    const resp = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        username: document.getElementById('username').value,
+        password: document.getElementById('password').value,
+      }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) { showToast(data.error || '登录失败', 'error'); btn.disabled = false; btn.textContent = '登 录'; return; }
+    document.cookie = `token=${data.token};path=/;max-age=86400;SameSite=Lax`;
+    showT    setTimeout(() => { window.location.href = '/dashboard'; }, 400);
+  } catch (err) {
+    showToast('网络错误，请稍后重试', 'error');
+    btn.disabled = false; btn.textContent = '登 录';
+  }
+});
+</script>
+</body>
+</html>
